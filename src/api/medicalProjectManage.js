@@ -11,6 +11,15 @@ export function getMedicalProjects(data) {
   })
 }
 
+//获取体检项目列表(未删除的)
+export function getExistMedicalProjects(data) {
+  return request({
+    url: `${module}/search/exist`,
+    method: 'post',
+    data,
+  })
+}
+
 //获取体检项目列表
 export function getAllProjects(data) {
   return request({

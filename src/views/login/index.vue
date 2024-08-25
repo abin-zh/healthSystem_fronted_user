@@ -8,8 +8,8 @@
         <h1>{{ $store.state.settings.title }}</h1>
         <b>欢迎使用健康体检平台</b>
         <el-form ref="loginForm" label-position="top" :model="loginForm" :rules="loginRules">
-          <el-form-item label="用户名" prop="username">
-            <el-input v-model="loginForm.username" placeholder="请输入用户名" size="primary" type="text" />
+          <el-form-item label="账号" prop="username">
+            <el-input v-model="loginForm.username" placeholder="请输入手机号或身份证号" size="primary" type="text" />
           </el-form-item>
           <el-form-item label="密码" prop="password">
             <cy-pwd v-model="loginForm.password" />
@@ -26,6 +26,11 @@
             </el-col>
           </el-form-item>
           <el-form-item>
+            <div class="link-box">
+              <el-link type="primary" @click="$router.push('/register')">未有账号，前往注册</el-link>
+            </div>
+          </el-form-item>
+          <el-form-item>
             <el-button v-loading="loading" size="primary" style="width: 100%" type="primary" @click="doLogin">登录</el-button>
           </el-form-item>
         </el-form>
@@ -37,11 +42,24 @@
 <script>
   import CyPwd from '@/components/CyPwd'
   import { getEmailCode } from '../../api/user'
+  import verifyCardNum from '../../utils/idCardValidate/idCardVerify'
+  import { isPhone } from '../../utils/validate'
   export default {
     components: {
       CyPwd,
     },
     data() {
+      const usernameValid = (rule, value, callback) => {
+        if (value.length != 11 && value.length != 18) {
+          callback(Error('请输入手机号或身份证号'))
+        } else if (value.length == 11 && !isPhone(value)) {
+          callback(Error('请输入正确的手机号'))
+        } else if (value.length == 18 && !verifyCardNum(value)) {
+          callback(Error('请输入正确的身份证号'))
+        } else {
+          callback()
+        }
+      }
       return {
         codeButtonTitle: null,
         codeDisabled: false,
@@ -55,8 +73,9 @@
         },
         loginRules: {
           username: [
-            { required: true, message: '请输入用户名', trigger: 'blur' },
-            { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' },
+            { required: true, message: '请输入手机号或身份证号', trigger: 'blur' },
+            { min: 11, max: 18, message: '长度在 11 到 18 个字符', trigger: 'blur' },
+            { validator: usernameValid, trigger: 'blur' },
           ],
           password: [
             { required: true, message: '请输入密码', trigger: 'blur' },
@@ -192,5 +211,9 @@
       display: flex;
       justify-content: flex-end;
     }
+  }
+  .link-box {
+    display: flex;
+    justify-content: flex-end;
   }
 </style>

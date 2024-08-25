@@ -86,7 +86,7 @@
 <script>
   import { getAllPackages } from '@/api/medicalPackageManage'
   import { getAllProjects } from '@/api/medicalProjectManage'
-  import { addBill } from '@/api/billManage'
+  import { addUserBill } from '@/api/billManage'
   import treeTransfer from 'el-tree-transfer'
 
   export default {
@@ -133,14 +133,11 @@
     },
     methods: {
       showEdit(row) {
-        this.step = 0
         if (row) {
           this.title = '开单'
-          this.btnTitle = '下一步'
-          this.choosePackageList = []
           this.form = Object.assign({}, row)
         }
-        this.fetchData('package')
+        this.preStep()
         this.dialogFormVisible = true
       },
       close() {
@@ -196,6 +193,7 @@
         this.btnTitle = '下一步'
         this.choosePackageList = []
         this.chooseProjectList = []
+        this.showProjectList = []
         this.fetchData('package')
       },
       handleShow(tag) {
@@ -222,8 +220,9 @@
           type: 'warning',
         })
           .then(() => {
-            addBill(this.form).then((res) => {
+            addUserBill(this.form).then((res) => {
               this.$baseMessage(res.msg, 'success')
+              this.close()
             })
             this.dialogFormVisible = false
           })

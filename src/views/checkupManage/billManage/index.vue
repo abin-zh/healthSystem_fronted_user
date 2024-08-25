@@ -2,34 +2,13 @@
   <div class="table-container">
     <vab-query-form>
       <vab-query-form-left-panel>
-        <div class="spot"></div>
+        <el-button type="primary" @click="handleEdit(row)">体检办理</el-button>
       </vab-query-form-left-panel>
       <vab-query-form-right-panel>
         <el-form ref="form" class="list-form" :inline="true" :model="queryForm" @submit.native.prevent>
-          <el-col :span="4">
-            <el-form-item>
-              <el-input v-model="queryForm.data.userName" placeholder="姓名" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="5">
-            <el-form-item>
-              <el-input v-model="queryForm.data.userPhone" placeholder="手机号" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="5">
-            <el-form-item>
-              <el-input v-model="queryForm.data.userIdCard" placeholder="身份证号" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="4">
-            <el-form-item>
-              <el-select v-model="queryForm.data.userGender" placeholder="性别">
-                <el-option label="所有性别" value="" />
-                <el-option label="男" value="1" />
-                <el-option label="女" value="0" />
-              </el-select>
-            </el-form-item>
-          </el-col>
+          <el-form-item>
+            <el-input v-model="queryForm.data.orderNumber" placeholder="体检编号" />
+          </el-form-item>
           <el-form-item>
             <el-button icon="el-icon-search" native-type="submit" type="primary" @click="handleQuery">查询</el-button>
           </el-form-item>
@@ -37,45 +16,34 @@
       </vab-query-form-right-panel>
     </vab-query-form>
 
-    <el-table
-      ref="tableSort"
-      v-loading="listLoading"
-      :data="list"
-      :element-loading-text="elementLoadingText"
-      :height="height"
-      @selection-change="setSelectRows"
-      @sort-change="tableSortChange"
-    >
-      <el-table-column show-overflow-tooltip type="selection" width="55" />
+    <el-table ref="tableSort" v-loading="listLoading" :data="list" :element-loading-text="elementLoadingText" :height="height">
       <el-table-column label="序号" show-overflow-tooltip width="95">
         <template #default="scope">
           {{ scope.$index + 1 }}
         </template>
       </el-table-column>
-      <el-table-column label="姓名" prop="userName" show-overflow-tooltip />
-      <el-table-column label="性别" prop="userGender" show-overflow-tooltip>
-        <template #default="{ row }">
-          <i v-if="row.userGender == 1" class="el-icon-male male"></i>
-          <i v-else class="el-icon-female female"></i>
-        </template>
-      </el-table-column>
-      <el-table-column label="手机号" prop="userPhone" show-overflow-tooltip sortable />
-      <el-table-column label="身份证号" prop="userIdCard" show-overflow-tooltip />
-      <el-table-column label="是否删除" prop="userIsDeleted" show-overflow-tooltip>
+      <el-table-column label="体检编号" prop="orderNumber" />
+      <el-table-column label="总价" prop="orderTotalAmount" />
+      <el-table-column label="创建时间" show-overflow-tooltip>
         <template #default="scope">
-          <el-tag v-if="scope.row.userIsDeleted == 0">未删除</el-tag>
-          <el-tag v-else type="danger">已删除</el-tag>
+          {{ formatTimestamp(scope.row.orderTime, 'datatime') }}
         </template>
       </el-table-column>
-      <el-table-column label="年龄" prop="userBirthday" show-overflow-tooltip>
-        <template #default="{ row }">
-          <el-tag v-if="row.userBirthday" type="success">{{ calculateAge(row.userBirthday) }}岁</el-tag>
+      <el-table-column label="状态" prop="ordetStatus">
+        <template #default="scope">
+          <el-tag v-if="scope.row.orderStatus == 0" type="warning">未支付</el-tag>
+          <el-tag v-if="scope.row.orderStatus == 1">已支付</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" show-overflow-tooltip width="180px">
+      <el-table-column label="操作" width="200px">
         <template #default="{ row }">
-          <template v-if="row.userIsDeleted == 0">
-            <el-button type="text" @click="handleEdit(row)">开单</el-button>
+          <template v-if="row.orderStatus == 0">
+            <el-button type="text" @click="handlePay(row)">支付</el-button>
+          </template>
+          <template v-else>
+            <el-button type="text" @click="handlePs(row)">查看小结</el-button>
+            <el-button type="text" @click="handleCs(row)">查看总结</el-button>
+            <el-button type="text" @click="handleReport(row)">体检报告</el-button>
           </template>
         </template>
       </el-table-column>
@@ -90,32 +58,29 @@
       @size-change="handleSizeChange"
     />
     <table-edit ref="edit" @fetch-data="fetchData" />
+    <ps-manage ref="ps" />
+    <cs-manage ref="cs" />
   </div>
 </template>
 
 <script>
+  import PsManage from './components/psManage/index'
+  import CsManage from './components/csManage/index'
   import TableEdit from './components/TableEdit'
-  import { getUsers } from '@/api/userManage'
-  import { calculateAge } from '@/utils'
+  import { userPayCheckUp } from '@/api/user'
+  import { getUserOrders } from '@/api/billManage'
+  import { formatTimestamp } from '@/utils'
 
   export default {
     name: 'ComprehensiveTable',
     components: {
       TableEdit,
-    },
-    filters: {
-      statusFilter(status) {
-        const statusMap = {
-          published: 'success',
-          draft: 'gray',
-          deleted: 'danger',
-        }
-        return statusMap[status]
-      },
+      PsManage,
+      CsManage,
     },
     data() {
       return {
-        calculateAge: calculateAge,
+        formatTimestamp: formatTimestamp,
         imgShow: true,
         list: [],
         imageList: [],
@@ -129,10 +94,7 @@
           pageNo: 1,
           pageSize: 10,
           data: {
-            userName: '',
-            userPhone: '',
-            userIdCard: '',
-            userGender: '',
+            orderNumber: '',
           },
         },
         uploadHeaders: {
@@ -149,13 +111,29 @@
     beforeDestroy() {
       clearTimeout(this.timeOutID)
     },
-    mounted() {},
+    mounted() {
+      this.fetchData()
+    },
     methods: {
-      setSelectRows(val) {
-        this.selectRows = val
-      },
       handleEdit(row) {
         this.$refs['edit'].showEdit(row)
+      },
+      handleCs(row) {
+        this.$refs['cs'].showEdit(row)
+      },
+      handlePs(row) {
+        this.$refs['ps'].showEdit(row)
+      },
+      handlePay(row) {
+        this.$confirm(`是否支付，将从余额中扣除${row.orderTotalAmount}元`, '提示', {
+          confirmButtonText: '支付',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }).then(() => {
+          userPayCheckUp(row).then((res) => {
+            this.fetchData()
+          })
+        })
       },
       handleSizeChange(val) {
         this.queryForm.pageSize = val
@@ -171,7 +149,11 @@
       },
       async fetchData() {
         this.listLoading = true
-        const { data, count } = await getUsers(this.queryForm)
+        const { data, count } = await getUserOrders(this.queryForm).catch((err) => {
+          this.timeOutID = setTimeout(() => {
+            this.listLoading = false
+          })
+        })
         this.list = data
         this.total = count
         this.timeOutID = setTimeout(() => {
@@ -182,6 +164,10 @@
   }
 </script>
 <style scoped>
+  .table-container {
+    padding: 32px;
+    box-sizing: border-box;
+  }
   .male {
     color: #409eff;
   }

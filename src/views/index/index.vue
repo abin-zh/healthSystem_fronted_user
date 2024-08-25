@@ -1,6 +1,6 @@
 <template>
   <div class="index-container">
-    <el-row :gutter="20">
+    <el-row>
       <el-carousel arrow="always" class="custom-carousel" height="320px" :interval="4000" type="card">
         <el-carousel-item v-for="item in items" :key="item.id">
           <div class="img-box">
@@ -14,7 +14,7 @@
       <el-col v-for="item in cards" :key="item.id" :span="6">
         <div class="card-box">
           <el-card shadow="hover">
-            <div class="route-box">
+            <div class="route-box" @click="$router.push(item.path)">
               <div class="icon-box">
                 <i :class="item.icon"></i>
               </div>
@@ -84,23 +84,27 @@
         cards: [
           {
             id: 0,
-            icon: 'el-icon-s-order',
-            title: '购买体检',
+            icon: 'el-icon-tickets',
+            title: '体检项目',
+            path: '/medical_project',
           },
           {
             id: 1,
-            icon: 'el-icon-tickets',
-            title: '体检项目',
+            icon: 'el-icon-goods',
+            title: '体检套餐',
+            path: '/medical_package',
           },
           {
             id: 2,
-            icon: 'el-icon-goods',
-            title: '体检套餐',
+            icon: 'el-icon-s-order',
+            title: '体检办理',
+            path: '/bill',
           },
           {
-            id: 4,
+            id: 3,
             icon: 'el-icon-document',
             title: '体检报告',
+            path: '/checkup_summary ',
           },
         ],
       }
@@ -236,6 +240,10 @@
   .el-card {
     border-radius: 16px;
     margin-left: 2px;
+  }
+
+  .el-card:hover {
+    cursor: pointer;
   }
 
   .route-box {

@@ -9,7 +9,7 @@
     <footer v-show="footerCopyright" class="footer-copyright">
       Copyright
       <vab-icon :icon="['fas', 'copyright']"></vab-icon>
-      cykj abin 健康体检系统 {{ fullYear }}
+      cykj abin {{ $store.state.settings.title }} {{ fullYear }}
     </footer>
   </div>
 </template>

@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :modal-append-to-body="false" :title="title" :visible.sync="dialogFormVisible" width="800px" @close="close">
+  <el-dialog :title="title" :visible.sync="dialogFormVisible" width="760px">
     <el-table ref="tableSort" v-loading="listLoading" :data="list" :height="height">
       <el-table-column label="序号" show-overflow-tooltip width="95">
         <template #default="scope">
@@ -41,34 +41,50 @@
         </template>
       </el-table-column>
     </el-table>
-    <item-table ref="item" />
+    <el-pagination
+      :background="background"
+      :current-page="queryForm.pageNo"
+      :layout="layout"
+      :page-size="queryForm.pageSize"
+      :total="total"
+      @current-change="handleCurrentChange"
+      @size-change="handleSizeChange"
+    />
+    <item-table ref="item" @fetch-data="fetchData" />
   </el-dialog>
 </template>
 
 <script>
-  import { getAllOrderProjects } from '@/api/billManage'
-  import { formatTimestamp } from '@/utils'
-  import ItemTable from './components/itemView'
+  import ItemTable from './components/item'
+  import { getUserProjectSummaries } from '@/api/billManage'
+  import { formatTimestamp, calculateAge } from '@/utils'
 
   export default {
-    name: 'ProjectTable',
+    name: 'PsManage',
     components: {
       ItemTable,
     },
     data() {
       return {
+        title: '',
+        dialogFormVisible: false,
         formatTimestamp: formatTimestamp,
+        calculateAge: calculateAge,
         list: [],
         listLoading: false,
+        layout: 'total, sizes, prev, pager, next, jumper',
+        total: 0,
         background: true,
         selectRows: '',
         elementLoadingText: '正在加载...',
-        timeOutID: null,
-        form: {
-          csOrderId: '',
+        queryForm: {
+          pageNo: 1,
+          pageSize: 10,
+          data: {
+            orderId: '',
+          },
         },
-        title: '',
-        dialogFormVisible: false,
+        timeOutID: null,
       }
     },
     computed: {
@@ -76,37 +92,47 @@
         return this.$baseTableHeight()
       },
     },
-    created() {},
+    beforeDestroy() {
+      clearTimeout(this.timeOutID)
+    },
     methods: {
       showEdit(row) {
         if (row) {
-          this.title = '项目小结'
-          this.form = Object.assign({}, row)
-          this.fetchData()
+          this.title = '体检小结'
+          this.queryForm.data = Object.assign({}, row)
         }
+        this.fetchData()
         this.dialogFormVisible = true
-      },
-      close() {
-        this.dialogFormVisible = false
       },
       handleItem(row) {
         this.$refs['item'].showEdit(row)
       },
+      handleSizeChange(val) {
+        this.queryForm.pageSize = val
+        this.fetchData()
+      },
+      handleCurrentChange(val) {
+        this.queryForm.pageNo = val
+        this.fetchData()
+      },
       async fetchData() {
         this.list = []
         this.listLoading = true
-        const { data, count } = await getAllOrderProjects(this.form)
+        const { data, count } = await getUserProjectSummaries(this.queryForm)
         this.list = data
         this.total = count
         this.timeOutID = setTimeout(() => {
           this.listLoading = false
         }, 500)
       },
+      tableRowClassName({ row, rowIndex }) {
+        return 'row-order'
+      },
     },
   }
 </script>
-<style scoped>
-  .line {
-    text-align: center;
+<style>
+  .el-table .row-order {
+    background: #fafafa;
   }
 </style>

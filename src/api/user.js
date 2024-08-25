@@ -40,9 +40,59 @@ export function logout() {
   })
 }
 
-export function register() {
+export function register(data) {
   return request({
-    url: '/register',
+    url: `${module}/register`,
     method: 'post',
+    data,
+  })
+}
+
+export function getProjects(data) {
+  return request({
+    url: `${module}/project/search`,
+    method: 'post',
+    data,
+  })
+}
+
+export function getPackages(data) {
+  return request({
+    url: `${module}/package/search`,
+    method: 'post',
+    data,
+  })
+}
+
+/**
+ * 用户充值
+ */
+export function userPay(data) {
+  return request({
+    url: `${module}/topup`,
+    method: 'post',
+    data,
+  })
+}
+
+/**
+ * 获取用户当前余额
+ */
+export function getUserBalance(data) {
+  return request({
+    url: `${module}/balance`,
+    method: 'post',
+    data,
+  })
+}
+
+/**
+ * 用户支付体检订单
+ */
+export function userPayCheckUp(data) {
+  return request({
+    url: `${module}/pay/checkup`,
+    method: 'post',
+    data,
   })
 }

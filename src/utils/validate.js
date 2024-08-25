@@ -74,9 +74,7 @@ export const validPhone = (rule, value, callback) => {
 }
 
 export const validIdCard = (rule, value, callback) => {
-  if (isNaN(value)) {
-    callback(new Error('请输入数字'))
-  } else if (!verifyCardNum(value)) {
+  if (!verifyCardNum(value)) {
     callback(new Error('请输入正确的身份证号'))
   } else {
     callback()

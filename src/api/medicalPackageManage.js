@@ -11,6 +11,14 @@ export function getMedicalPackages(data) {
   })
 }
 
+export function getExistMedicalPackages(data) {
+  return request({
+    url: `${module}/search/exist`,
+    method: 'post',
+    data,
+  })
+}
+
 //获取体检套餐的体检项目列表
 export function getMedicalPackageProjects(data) {
   return request({

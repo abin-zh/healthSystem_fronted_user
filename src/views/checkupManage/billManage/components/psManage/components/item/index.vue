@@ -23,25 +23,15 @@
           {{ scope.row.staff ? scope.row.staff.staffName : '' }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" show-overflow-tooltip width="180px">
-        <template #default="{ row }">
-          <el-button type="text" @click="handleEdit(row)">编辑结论</el-button>
-        </template>
-      </el-table-column>
     </el-table>
-    <table-edit ref="editItem" @fetch-data="fetchData" />
   </el-dialog>
 </template>
 
 <script>
-  import TableEdit from './components/TableEdit'
   import { getProjectItems } from '@/api/billManage'
 
   export default {
     name: 'ItemTable',
-    components: {
-      TableEdit,
-    },
     data() {
       return {
         list: [],

@@ -1,10 +1,6 @@
 <template>
   <div class="table-container">
     <vab-query-form>
-      <vab-query-form-left-panel>
-        <el-button icon="el-icon-plus" type="primary" @click="handleAdd">添加</el-button>
-        <el-button icon="el-icon-delete" type="danger" @click="handleDelete">删除</el-button>
-      </vab-query-form-left-panel>
       <vab-query-form-right-panel>
         <el-form ref="form" class="form" :inline="true" :model="queryForm" @submit.native.prevent>
           <el-col :span="4">
@@ -34,23 +30,18 @@
       </vab-query-form-right-panel>
     </vab-query-form>
 
-    <el-table
-      ref="tableSort"
-      v-loading="listLoading"
-      :data="list"
-      :element-loading-text="elementLoadingText"
-      :height="height"
-      @selection-change="setSelectRows"
-      @sort-change="tableSortChange"
-    >
-      <el-table-column show-overflow-tooltip type="selection" width="55" />
+    <el-table ref="tableSort" v-loading="listLoading" :data="list" :element-loading-text="elementLoadingText" :height="420">
       <el-table-column label="序号" show-overflow-tooltip width="95">
         <template #default="scope">
           {{ scope.$index + 1 }}
         </template>
       </el-table-column>
       <el-table-column label="套餐名称" prop="packageName" show-overflow-tooltip />
-      <el-table-column label="价格" prop="packagePrice" show-overflow-tooltip />
+      <el-table-column label="价格" prop="packagePrice" show-overflow-tooltip>
+        <template #default="scope">
+          <el-tag>{{ scope.row.packagePrice }}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="项目列表(点击查看)">
         <template #default="scope">
           <el-popover placement="right" trigger="click" width="400" @show="handleItemShow(scope.row)">
@@ -70,23 +61,6 @@
           </el-popover>
         </template>
       </el-table-column>
-      <el-table-column label="是否删除" prop="packageIsDeleted" show-overflow-tooltip>
-        <template #default="scope">
-          <el-tag v-if="scope.row.packageIsDeleted == 0">未删除</el-tag>
-          <el-tag v-else type="danger">已删除</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" show-overflow-tooltip width="180px">
-        <template #default="{ row }">
-          <template v-if="row.packageIsDeleted == 0">
-            <el-button type="text" @click="handleEdit(row)">编辑</el-button>
-            <el-button type="text" @click="handleDelete(row)">删除</el-button>
-          </template>
-          <template v-else>
-            <el-button type="text" @click="handleRestore(row)">恢复</el-button>
-          </template>
-        </template>
-      </el-table-column>
     </el-table>
     <el-pagination
       :background="background"
@@ -97,19 +71,14 @@
       @current-change="handleCurrentChange"
       @size-change="handleSizeChange"
     />
-    <table-edit ref="edit" @fetch-data="fetchData" />
   </div>
 </template>
 
 <script>
-  import TableEdit from './components/TableEdit'
-  import { deleteMedicalPackages, getMedicalPackages, getMedicalPackageProjects } from '../../../api/medicalPackageManage'
+  import { deleteMedicalPackages, getExistMedicalPackages, getMedicalPackageProjects } from '@/api/medicalPackageManage'
 
   export default {
     name: 'ComprehensiveTable',
-    components: {
-      TableEdit,
-    },
     filters: {
       statusFilter(status) {
         const statusMap = {
@@ -156,43 +125,6 @@
     },
     mounted() {},
     methods: {
-      tableSortChange() {
-        const imageList = []
-        this.$refs.tableSort.tableData.forEach((item, index) => {
-          imageList.push(item.img)
-        })
-        this.imageList = imageList
-      },
-      setSelectRows(val) {
-        this.selectRows = val
-      },
-      handleAdd() {
-        this.$refs['edit'].showEdit()
-      },
-      handleEdit(row) {
-        this.$refs['edit'].showEdit(row)
-      },
-      handleDelete(row) {
-        if (row.id) {
-          this.$baseConfirm('你确定要删除当前项吗', null, async () => {
-            const { msg } = await deleteMedicalPackages({ ids: row.packageId })
-            this.$baseMessage(msg, 'success')
-            this.fetchData()
-          })
-        } else {
-          if (this.selectRows.length > 0) {
-            const ids = this.selectRows.map((item) => item.packageId)
-            this.$baseConfirm('你确定要删除选中项吗', null, async () => {
-              const { msg } = await deleteMedicalPackages({ ids: ids })
-              this.$baseMessage(msg, 'success')
-              this.fetchData()
-            })
-          } else {
-            this.$baseMessage('未选中任何行', 'error')
-            return false
-          }
-        }
-      },
       handleSizeChange(val) {
         this.queryForm.pageSize = val
         this.fetchData()
@@ -207,7 +139,7 @@
       },
       async fetchData() {
         this.listLoading = true
-        const { data, count } = await getMedicalPackages(this.queryForm)
+        const { data, count } = await getExistMedicalPackages(this.queryForm)
         this.list = data
         this.total = count
         this.timeOutID = setTimeout(() => {
@@ -229,6 +161,10 @@
   }
 </script>
 <style scoped>
+  .table-container {
+    padding: 32px;
+    box-sizing: border-box;
+  }
   .form {
     display: flex;
     justify-content: flex-end;

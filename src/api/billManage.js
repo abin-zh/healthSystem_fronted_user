@@ -2,10 +2,37 @@ import request from '@/utils/request'
 
 const module = '/orders'
 
-//创建订单
-export function addBill(data) {
+//获取用户订单
+export function getUserOrders(data) {
   return request({
-    url: `${module}/add`,
+    url: `${module}/search/user`,
+    method: 'post',
+    data,
+  })
+}
+
+//获取用户体检小结
+export function getUserProjectSummaries(data) {
+  return request({
+    url: `${module}/project/user`,
+    method: 'post',
+    data,
+  })
+}
+
+//获取用户体检小结
+export function getUserCheckup(data) {
+  return request({
+    url: `${module}/checkup/user`,
+    method: 'post',
+    data,
+  })
+}
+
+//创建订单
+export function addUserBill(data) {
+  return request({
+    url: `${module}/user/add`,
     method: 'post',
     data,
   })

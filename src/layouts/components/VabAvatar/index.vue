@@ -9,6 +9,7 @@
           <i class="el-icon-arrow-down el-icon--right"></i>
         </div>
         <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item command="pay" divided>充值</el-dropdown-item>
           <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -16,21 +17,30 @@
         <el-button @click="$router.push('/login')">前往登录</el-button>
       </template>
     </span>
+    <top-up ref="topup"></top-up>
   </el-dropdown>
 </template>
 
 <script>
   import { mapGetters } from 'vuex'
   import { recordRoute } from '@/config'
-
+  import TopUp from './components/TopUp'
   export default {
     name: 'VabAvatar',
+    components: {
+      TopUp,
+    },
     computed: {
       ...mapGetters({
         avatar: 'user/avatar',
         username: 'user/username',
         accessToken: 'user/accessToken',
       }),
+    },
+    data() {
+      return {
+        userPay: userPay,
+      }
     },
     methods: {
       handleCommand(command) {
@@ -41,6 +51,8 @@
           case 'personalCenter':
             this.personalCenter()
             break
+          case 'pay':
+            this.handlePay()
         }
       },
       personalCenter() {
@@ -56,6 +68,9 @@
             this.$router.push('/login')
           }
         })
+      },
+      handlePay() {
+        this.$refs['topup'].showEdit()
       },
     },
   }

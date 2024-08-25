@@ -1,10 +1,6 @@
 <template>
   <div class="table-container">
     <vab-query-form>
-      <vab-query-form-left-panel>
-        <el-button icon="el-icon-plus" type="primary" @click="handleAdd">添加</el-button>
-        <el-button icon="el-icon-delete" type="danger" @click="handleDelete">删除</el-button>
-      </vab-query-form-left-panel>
       <vab-query-form-right-panel>
         <el-form ref="form" class="form" :inline="true" :model="queryForm" @submit.native.prevent>
           <el-col :span="5">
@@ -42,16 +38,7 @@
       </vab-query-form-right-panel>
     </vab-query-form>
 
-    <el-table
-      ref="tableSort"
-      v-loading="listLoading"
-      :data="list"
-      :element-loading-text="elementLoadingText"
-      :height="height"
-      @selection-change="setSelectRows"
-      @sort-change="tableSortChange"
-    >
-      <el-table-column show-overflow-tooltip type="selection" width="55" />
+    <el-table ref="tableSort" v-loading="listLoading" :data="list" :element-loading-text="elementLoadingText" :height="420">
       <el-table-column label="序号" show-overflow-tooltip width="95">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -81,23 +68,6 @@
           </el-popover>
         </template>
       </el-table-column>
-      <el-table-column label="是否删除" prop="itemIsDeleted" show-overflow-tooltip>
-        <template #default="scope">
-          <el-tag v-if="scope.row.projectIsDeleted == 0">未删除</el-tag>
-          <el-tag v-else type="danger">已删除</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" show-overflow-tooltip width="180px">
-        <template #default="{ row }">
-          <template v-if="row.projectIsDeleted == 0">
-            <el-button type="text" @click="handleEdit(row)">编辑</el-button>
-            <el-button type="text" @click="handleDelete(row)">删除</el-button>
-          </template>
-          <template v-else>
-            <el-button type="text" @click="handleRestore(row)">恢复</el-button>
-          </template>
-        </template>
-      </el-table-column>
     </el-table>
     <el-pagination
       :background="background"
@@ -108,19 +78,14 @@
       @current-change="handleCurrentChange"
       @size-change="handleSizeChange"
     />
-    <table-edit ref="edit" @fetch-data="fetchData" />
   </div>
 </template>
 
 <script>
-  import TableEdit from './components/TableEdit'
-  import { getMedicalProjects, deleteMedicalProjects, getMedicalProjectItems, getAllDeptsAndItems } from '@/api/medicalProjectManage'
+  import { getExistMedicalProjects, getMedicalProjectItems } from '@/api/medicalProjectManage'
 
   export default {
     name: 'ComprehensiveTable',
-    components: {
-      TableEdit,
-    },
     filters: {
       statusFilter(status) {
         const statusMap = {
@@ -171,43 +136,6 @@
     },
     mounted() {},
     methods: {
-      tableSortChange() {
-        const imageList = []
-        this.$refs.tableSort.tableData.forEach((item, index) => {
-          imageList.push(item.img)
-        })
-        this.imageList = imageList
-      },
-      setSelectRows(val) {
-        this.selectRows = val
-      },
-      handleAdd() {
-        this.$refs['edit'].showEdit()
-      },
-      handleEdit(row) {
-        this.$refs['edit'].showEdit(row)
-      },
-      handleDelete(row) {
-        if (row.id) {
-          this.$baseConfirm('你确定要删除当前项吗', null, async () => {
-            const { msg } = await deleteMedicalProjects({ ids: row.projectId })
-            this.$baseMessage(msg, 'success')
-            this.fetchData()
-          })
-        } else {
-          if (this.selectRows.length > 0) {
-            const ids = this.selectRows.map((item) => item.projectId)
-            this.$baseConfirm('你确定要删除选中项吗', null, async () => {
-              const { msg } = await deleteMedicalProjects({ ids: ids })
-              this.$baseMessage(msg, 'success')
-              this.fetchData()
-            })
-          } else {
-            this.$baseMessage('未选中任何行', 'error')
-            return false
-          }
-        }
-      },
       handleSizeChange(val) {
         this.queryForm.pageSize = val
         this.fetchData()
@@ -222,7 +150,7 @@
       },
       async fetchData() {
         this.listLoading = true
-        const { data, count } = await getMedicalProjects(this.queryForm)
+        const { data, count } = await getExistMedicalProjects(this.queryForm)
         this.list = data
         this.total = count
         this.timeOutID = setTimeout(() => {
@@ -244,37 +172,14 @@
       handleItemShow(row) {
         this.fetchItem(row.projectId)
       },
-      testMessage() {
-        this.$baseMessage('test1', 'success')
-      },
-      testALert() {
-        this.$baseAlert('11')
-        this.$baseAlert('11', '自定义标题', () => {
-          /* 可以写回调; */
-        })
-        this.$baseAlert('11', null, () => {
-          /* 可以写回调; */
-        })
-      },
-      testConfirm() {
-        this.$baseConfirm(
-          '你确定要执行该操作?',
-          null,
-          () => {
-            /* 可以写回调; */
-          },
-          () => {
-            /* 可以写回调; */
-          }
-        )
-      },
-      testNotify() {
-        this.$baseNotify('测试消息提示', 'test', 'success', 'bottom-right')
-      },
     },
   }
 </script>
 <style scoped>
+  .table-container {
+    padding: 32px;
+    box-sizing: border-box;
+  }
   .line {
     display: flex;
     justify-content: center;
