@@ -82,7 +82,7 @@
 </template>
 
 <script>
-  import { getExistMedicalProjects, getMedicalProjectItems } from '@/api/medicalProjectManage'
+  import { getExistMedicalProjects, getMedicalProjectItems, getAllDeptsAndItems } from '@/api/medicalProjectManage'
 
   export default {
     name: 'ComprehensiveTable',

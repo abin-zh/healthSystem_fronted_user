@@ -24,7 +24,7 @@
       return {
         pwdInput: {
           type: 'password',
-          icon: '/static/images/open-eyes.png',
+          icon: './static/images/open-eyes.png',
         },
       }
     },
@@ -41,7 +41,7 @@
     methods: {
       toggleType() {
         this.pwdInput.type = this.pwdInput.type == 'password' ? 'text' : 'password'
-        this.pwdInput.icon = `/static/images/${this.pwdInput.type == 'password' ? 'open-eyes' : 'close-eyes'}.png`
+        this.pwdInput.icon = `./static/images/${this.pwdInput.type == 'password' ? 'open-eyes' : 'close-eyes'}.png`
       },
       updatePwd(value) {
         this.computedValue = value
